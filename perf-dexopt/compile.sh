@@ -5,13 +5,14 @@
 # nohup и переживает обрыв adb; скрипт ждёт завершения и показывает прогресс.
 # 10–20 минут, планшет греется и подтормаживает — лучше на зарядке и не во время кино.
 # Откат: ./revert.sh
+# Нюанс: pgrep -f с шаблоном "packag[e]" — иначе он находит собственную оболочку adb shell.
 set -u
 : "${ADB_SERIAL:?Нужен export ADB_SERIAL=<ip:port> (см. connect-wireless-adb/connect.sh)}"
 ADB() { adb -s "$ADB_SERIAL" "$@"; }
 LOG=/data/local/tmp/dexopt.log
 
 echo "Состояние до:"; ADB shell dumpsys package 2>/dev/null | tr -d '\r' | grep -oE "status=[a-z-]+\]" | sort | uniq -c | sort -rn
-if ADB shell 'pgrep -f "cmd package compile" >/dev/null' 2>/dev/null; then echo "Компиляция уже идёт"; else
+if [ "$(ADB shell "pgrep -f 'cmd packag[e] compile' | wc -l" 2>/dev/null | tr -d "\r ")" != "0" ]; then echo "Компиляция уже идёт"; else
   ADB shell "nohup sh -c 'cmd package compile -m speed-profile -a > $LOG 2>&1; echo EXIT=\$? >> $LOG' >/dev/null 2>&1 &"
   echo "Запущено на планшете ($(date '+%H:%M')), лог $LOG"
 fi
