@@ -1,80 +1,84 @@
 # megarohas_galaxy_tab_tweaks
 
-Твики для планшета Samsung **Galaxy Tab S6 Lite 2020** (SM-P610 Wi-Fi, One UI 5.1 /
-Android 13, 4 ГБ RAM) через **ADB по Wi-Fi**, без root. Заточено под конкретный
-планшет, но списки и команды стандартные для любого Samsung на One UI 5.
+**English** | [Русский](README.ru.md)
 
-## Предыстория
+Tweaks for the Samsung **Galaxy Tab S6 Lite 2020** tablet (SM-P610 Wi-Fi, One UI 5.1 /
+Android 13, 4 GB RAM) over **wireless ADB**, no root. Tailored to this particular
+tablet, but the lists and commands are standard for any Samsung on One UI 5.
 
-Планшет достался от предыдущего владельца и живёт как настольные часы (Flip Clock),
-плеер Plex и Яндекс Музыки. Аудит (только чтение) показал: при 4 ГБ RAM система
-держала «status low» и почти 2 ГБ в ZRAM-свопе, из них ~750 МБ — фоновые резиденты
-Samsung, которыми никто не пользуется (Daily Board, Samsung Cloud, Smart Suggestions,
-Find My Mobile, McAfee-сканер, Quick Share/Continuity); «Поиск устройств поблизости»
-сканировал BLE 100 % времени; Customization Service будил планшет 33 раза в сутки; а
-ночная AOT-компиляция приложений никогда не запускалась, потому что планшет ночью не
-простаивает, а показывает часы. После консервативной чистки память ушла в «status
-normal», крашей нет.
+## Background
 
-## Состав
+The tablet came from a previous owner and now lives on as a desk clock (Flip Clock)
+and a Plex and Yandex Music player. A (read-only) audit showed that with 4 GB of RAM
+the system sat at "status low" with almost 2 GB in ZRAM swap, ~750 MB of which were
+background Samsung residents nobody uses (Daily Board, Samsung Cloud, Smart Suggestions,
+Find My Mobile, the McAfee scanner, Quick Share/Continuity). "Nearby device scanning"
+was scanning BLE 100% of the time, Customization Service woke the tablet 33 times a
+day, and the nightly AOT compilation of apps never ran, because at night the tablet
+isn't idle — it's showing the clock. After a conservative cleanup, memory went to
+"status normal", with no crashes.
 
-| Папка | Что внутри |
+## Contents
+
+| Folder | What's inside |
 |---|---|
-| [`connect-wireless-adb/`](connect-wireless-adb/) | Сопряжение и подключение по Wi-Fi. Знает две грабли планшета: mDNS работает только в Bonjour-режиме adb, а устройство видно двумя транспортами — печатает готовый `export ADB_SERIAL=...` |
-| [`inventory-audit/`](inventory-audit/) | Снимок состояния (только чтение): getprop, пакеты, настройки, память по процессам, диск, батарея, джобы/алармы, использование приложений + парсеры |
-| [`debloat-tab-s6-lite/`](debloat-tab-s6-lite/) | Консервативная чистка: системное только `pm disable-user`, стороннее — с бэкапом APK; полный откат рядом |
-| [`perf-dexopt/`](perf-dexopt/) | Принудительная AOT-компиляция всех приложений (`speed-profile`), которую система сама не делает на никогда не простаивающем планшете |
-| [`storage-leftovers/`](storage-leftovers/) | Показ «хвостов» удалённых приложений в общей памяти (WhatsApp/Telegram/файловые менеджеры/APK в Download); удаление — руками, командой из README |
+| [`connect-wireless-adb/`](connect-wireless-adb/) | Pairing and connecting over Wi-Fi. Knows the tablet's two gotchas: mDNS only works in adb's Bonjour mode, and the device shows up via two transports — prints a ready-to-use `export ADB_SERIAL=...` |
+| [`inventory-audit/`](inventory-audit/) | A state snapshot (read-only): getprop, packages, settings, per-process memory, disk, battery, jobs/alarms, app usage + parsers |
+| [`debloat-tab-s6-lite/`](debloat-tab-s6-lite/) | Conservative cleanup: system apps only via `pm disable-user`, third-party ones with an APK backup; a full rollback sits next to it |
+| [`perf-dexopt/`](perf-dexopt/) | Forced AOT compilation of all apps (`speed-profile`), which the system never does on its own on a tablet that's never idle |
+| [`storage-leftovers/`](storage-leftovers/) | Shows leftovers of uninstalled apps in shared storage (WhatsApp/Telegram/file managers/APKs in Download); deleting is manual, with a command from the README |
 
-Папки самодостаточны: README «что и почему» + идемпотентные скрипты; у чистки и
-компиляции есть свой откат. Все скрипты ждут `export ADB_SERIAL=<ip:port>` —
-его печатает `connect.sh`.
+Each folder is self-contained: a README with the what and why + idempotent scripts;
+the debloat and the compilation come with their own rollback. All scripts expect
+`export ADB_SERIAL=<ip:port>` — `connect.sh` prints it. (The per-folder READMEs
+are in Russian.)
 
-Всё разом — **`apply-all.sh [ip]`** в корне: подключение → инвентарь → чистка →
-компиляция.
+To run everything at once, use **`apply-all.sh [ip]`** in the repo root: connect →
+inventory → debloat → compilation.
 
-## Что скрипты НЕ трогают
+## What the scripts DON'T touch
 
-Лаунчер (`com.sec.android.app.launcher`), SystemUI, Settings, GMS/GSF/Play Store,
-WebView, Samsung account (`osp`), `mobileservice`, `spp.push`, `scpm`, весь стек
-S Pen (`aircommand*`, `handwriting`, `livedrawing`, `pentastic`, `smartcapture`,
-Samsung Notes), Галерею, Мои файлы, обе клавиатуры, Finder, Device care (`lool`),
-агенты обновлений (`wssyncmldm`, `soagent`, `updatecenter`), Knox core, Dolby Atmos,
-часы Flip Clock, Погоду, Plex, Яндекс Музыку, ReVanced + microG, Chrome, Gmail —
-и **никакие VPN-приложения**: не удаляют и не ограничивают в фоне.
+The launcher (`com.sec.android.app.launcher`), SystemUI, Settings, GMS/GSF/Play Store,
+WebView, Samsung account (`osp`), `mobileservice`, `spp.push`, `scpm`, the whole
+S Pen stack (`aircommand*`, `handwriting`, `livedrawing`, `pentastic`, `smartcapture`,
+Samsung Notes), Gallery, My Files, both keyboards, Finder, Device care (`lool`),
+update agents (`wssyncmldm`, `soagent`, `updatecenter`), Knox core, Dolby Atmos,
+the Flip Clock app, Weather, Plex, Yandex Music, ReVanced + microG, Chrome, Gmail —
+and **no VPN apps**: they are never removed or restricted in the background.
 
-## Грабли, выученные на этом планшете
+## Lessons learned on this tablet
 
-- **mDNS.** Штатный openscreen-бэкенд adb планшет не видит; нужен
-  `ADB_MDNS_OPENSCREEN=0` у adb-сервера (Bonjour). `connect.sh` делает это сам.
-- **Два транспорта.** После `adb connect` устройство числится и как `ip:port`, и как
-  mDNS-имя; `adb shell` без `-s` отказывает. Отсюда обязательный `ADB_SERIAL`.
-- **zsh и переменная `path`.** В ad-hoc циклах в zsh переменная с именем `path`
-  перебивает `PATH` — пропадают `head`, `sed`, `tr`. Не называть так переменные.
-- **Find My Mobile защищён.** `pm disable-user com.samsung.android.fmm` отвечает
-  «Failed to change state». Сначала выключить «Поиск устройства» в Настройках →
-  Биометрия и безопасность, потом отключать.
-- **`dumpsys diskstats` врёт.** Размеры по приложениям берутся из кэша
-  `/data/system/diskstats_cache.json`, который обновляется только в простое; здесь он
-  был годовалой давности и показывал давно удалённые WhatsApp/TikTok. Верить `df`,
-  `du` и инвентарю.
-- **Load average ~19 — не проблема.** Ядро Exynos держит D-state потоки
-  (`tz_worker_thread`, `simpleinteractive`), они всегда считаются в load. Смотреть
-  `dumpsys cpuinfo` / `top`, а не `uptime`.
-- **Dolby Atmos** работает в софте и держит ~0.4 ядра в audioserver во время
-  воспроизведения, но на динамиках планшета звук без него заметно хуже. Оставлен
-  сознательно; ключа в `settings` у него нет, только GUI.
-- **Ночной dexopt не работает**, если планшет никогда не спит на зарядке
-  (часы на экране): из 362 пакетов скомпилировано было 29. Лечится
+- **mDNS.** The tablet isn't visible to adb's default openscreen backend; the adb
+  server needs `ADB_MDNS_OPENSCREEN=0` (Bonjour). `connect.sh` takes care of this.
+- **Two transports.** After `adb connect` the device is listed both as `ip:port` and
+  as an mDNS name, and `adb shell` without `-s` refuses to run. Hence the mandatory
+  `ADB_SERIAL`.
+- **zsh and the `path` variable.** In ad-hoc zsh loops, a variable named `path`
+  clobbers `PATH` — and `head`, `sed`, `tr` disappear. Don't name variables that.
+- **Find My Mobile is protected.** `pm disable-user com.samsung.android.fmm` replies
+  "Failed to change state". First turn off "Find My Mobile" in Settings →
+  Biometrics and security, then disable the package.
+- **`dumpsys diskstats` lies.** Per-app sizes come from the
+  `/data/system/diskstats_cache.json` cache, which only refreshes when the device is
+  idle; here it was a year old and still showed long-gone WhatsApp/TikTok. Trust `df`,
+  `du` and the inventory instead.
+- **A load average of ~19 is not a problem.** The Exynos kernel keeps D-state threads
+  (`tz_worker_thread`, `simpleinteractive`) that always count toward load. Look at
+  `dumpsys cpuinfo` / `top`, not `uptime`.
+- **Dolby Atmos** runs in software and keeps ~0.4 of a core busy in audioserver during
+  playback, but without it the tablet's speakers sound noticeably worse. Kept on
+  purpose; it has no key in `settings`, GUI only.
+- **Nightly dexopt doesn't run** if the tablet never sleeps on the charger
+  (clock on screen): only 29 out of 362 packages had been compiled. Fixed by
   [`perf-dexopt/`](perf-dexopt/).
 
-## Бэкапы
+## Backups
 
-Всё, что скрипты снимают с устройства (инвентарь — в нём серийники и имя аккаунта,
-APK удаляемых приложений, логи изменений), складывается в `backups/` в корне
-репозитория — папка в `.gitignore` и в GitHub не попадает.
+Everything the scripts pull from the device (the inventory — which includes serial
+numbers and the account name, APKs of removed apps, change logs) goes into `backups/`
+in the repo root — the folder is in `.gitignore` and never ends up on GitHub.
 
 ---
-*Списки пакетов сверены с прошивкой `P610XXS7FYD1` (One UI 5.1, последнее
-обновление для этой модели). На другом устройстве сначала снимите инвентарь и
-просмотрите списки в `debloat.sh` перед запуском.*
+*The package lists were checked against firmware `P610XXS7FYD1` (One UI 5.1, the last
+update for this model). On another device, take an inventory first and review the
+lists in `debloat.sh` before running it.*
